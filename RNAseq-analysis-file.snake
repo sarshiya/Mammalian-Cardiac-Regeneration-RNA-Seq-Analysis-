@@ -1,0 +1,177 @@
+# --- Content from week1.snake ---
+# use the names variable to store your list of file names
+name = ['ADrep1subsample','ADrep2subsample','P0rep2subsample', 'P4rep1subsample', 'P7rep1subsample', 'P7rep2subsample','ADrep1subsample','P0rep1subsample', 'P0rep2subsample', 'P4rep2subsample', 'P7rep1subsample','ADrep2subsample', 'P0rep1subsample', 'P4rep1subsample','P4rep2subsample', 'P7rep2subsample']
+
+read = ['R1', 'R2']
+
+# your snakemake rule should produce the output from MultiQC and if you link your rules inputs
+# and outputs, you should only have one file listed in your rule all
+rule all:
+	input:
+		file = 'results/multiqc_report.html'
+
+# make sure to read the fastqc manual to get a sense for appropriate running command
+# we have given you the basic structure of the snakemake rule to get you used to how they
+# are structured
+rule fastqc:
+	input:
+		fastq = 'samples/subsampled_files/{name}_{read}.fastq.gz',
+	output:
+		fastqc = 'results/{name}_{read}_fastqc.html',
+		zip = 'results/{name}_{read}_fastqc.zip'
+	params:
+		outdir = 'results/'
+	shell:
+		'''
+		fastqc {input.fastq} -o {params.outdir}
+		'''
+
+# remember that you want multiqc to run only after fastqc has run on all the files
+rule multiqc:
+	input:
+		multiq = expand('results/{sample}_{reads}_fastqc.zip', sample=name, reads=read)
+	output:
+		multiqc = 'results/multiqc_report.html'
+	params:
+		outdir = 'results/'
+	shell:
+		'''
+		multiqc {params.outdir}/ -o {params.outdir}
+		'''
+
+
+# --- Content from week2.snake ---
+#we have given you the rules you will need to fill out remember when structuring your dependencies, 
+# we are only downloading the GTF and genome.fa, we will not be doing anything further with them this week
+
+samples = ["ADrep1subsample", "ADrep2subsample", "P0rep1subsample", "P0rep2subsample", "P4rep1subsample", "P4rep2subsample", "P7rep1subsample", "P7rep2subsample"]
+
+
+rule all:
+	input:
+		'results/m39_primary_assembly.fa.gz',
+		'results/m39_gene_annotation.gtf.gz',
+		expand("results/{sample}_flagstat.txt", sample=samples)
+
+rule get_m39:
+	output:
+		'results/m39_primary_assembly.fa.gz'
+	params:
+		url = 'https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M34/GRCm39.primary_assembly.genome.fa.gz'
+	shell:
+		'''
+		wget -P {output} {params.url}
+		'''
+
+rule get_m39_gtf:
+	output:
+		'results/m39_gene_annotation.gtf.gz'
+	params:
+		url = 'https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_mouse/release_M34/gencode.vM34.primary_assembly.annotation.gtf.gz'	
+
+	shell:
+		'''
+		wget -P {output} {params.url}
+		'''
+
+#rule to decompress the gtf file
+rule decompress_gtf:
+	input : 
+		gz =  'results/m39_gene_annotation.gtf.gz'
+	output : 
+		gtf = 'results/m39_gene_annotation.gtf'
+	shell:
+		'''
+		gunzip -c {input.gz} > {output.gtf}
+		'''
+
+# make sure to read up on how STAR names it output files
+rule star:
+	input:
+		genome="samples/m39_subset_star/",
+		r1="samples/subsampled_files/{sample}_R1.fastq.gz", 
+		r2="samples/subsampled_files/{sample}_R2.fastq.gz", 
+	output:	
+		bam = "results/{sample}_aligned.out.bam"
+	params:
+		prefix = 'results/{sample}.'
+	shell:
+		'''
+		STAR --genomeDir {input.genome} 
+		--readFilesIn {input.r1} {input.r2} 
+		--readFilesCommand zcat 
+		--outSAMtype BAM Unsorted 
+		--outFileNamePrefix {params.prefix}
+		'''
+
+
+rule samtools_flagstat:
+	input:
+		bam = "results/{sample}_aligned.out.bam"
+	output:
+		flagstat = "results/{sample}_flagstat.txt"
+	shell:
+		'''
+		samtools flagstat {input.bam}>{output.flagstat}
+
+                '''
+
+
+
+# --- Content from week3.snake ---
+# Use this file and construct your own snakefile that successfully creates a workflow
+# for this week's tasks. We have provided you a visual representation of what it should
+# look like in the assigment. 
+NAMES = ['ADrep1subsample', 'ADrep2subsample', 'P0rep1subsample', 'P0rep2subsample', 'P4rep1subsample', 'P4rep2subsample', 'P7rep1subsample', 'P7rep2subsample']
+
+rule all:
+	input:
+		'results/verse_concat_filtered.csv',
+		'results/id2gene.txt',
+
+rule verse:
+	input:
+		bam = 'results/{name}.Aligned.out.bam',
+		gtf = 'results/gencode.vM33.primary_assembly.annotation.gtf',
+	output:
+		 verse_exons = 'results/{name}.exon.txt'
+        params:
+                prefix = 'results/{name}'
+        shell:
+                'verse -S -a {input.gtf} -o {params.prefix} {input.bam}'
+
+rule concat_verse:
+        input:
+                mats = expand('results/{name}.exon.txt', name=NAMES)
+        output:
+                concat = 'results/verse_concat.csv'
+        shell:
+                '''
+                python concat_df.py -i {input.mats} -o {output.concat}
+		'''
+
+rule filter_cts:
+        input:
+                verse = 'results/verse_concat.csv'
+        output:
+                filtered = 'results/verse_concat_filtered.csv'
+        shell:
+                '''
+                python filter_cts_mat.py -i {input.verse} -o {output.filtered}
+                '''
+
+rule txn_mapping:
+        input:
+                gtf = 'results/gencode.vM33.primary_assembly.annotation.gtf'
+        output:
+                mapping = 'results/id2gene.txt'
+        shell:
+                '''
+                python parse_gtf.py -i {input.gtf} -o {output.mapping}
+                '''
+
+
+
+
+
+
