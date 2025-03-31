@@ -1,1 +1,1 @@
-# Mammalian-Cardiac-Regeneration-RNA-Seq-Analysis-
+# Transcriptional Profile of Mammalian Cardiac Regeneration with mRNA-Seq
