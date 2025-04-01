@@ -20,20 +20,19 @@ While this project captures the core biological signals observed in the original
 
 ## Repository Structure
 
-```
-RNAseq-Project/
-│
-├── RNAseq-analysis-file.snake               # Snakemake pipeline (Week 1–3 merged)
-├── differential_expression_analysis.Rmd     # Differential gene expression (DESeq2)
-├── gene_set_enrichment_analysis.Rmd         # GO/KEGG enrichment analysis (GSEA)
-├── discussion_questions.Rmd                 # Weekly conceptual responses
-├── project_1_rnaseq.Rmd                     # Final report and synthesis
-├── full_data_multiqc_report.html            # QC summary (FastQC + MultiQC)
-├── Rhistory.txt                             # R console history & visuals used
-├── README.md                                # You’re reading it now
-```
+| File Name                                 | Purpose                                                       |
+|-------------------------------------------|---------------------------------------------------------------|
+| `README.md`                               | Contains full project documentation and analysis walkthrough  |
+| `RNAseq-analysis-file.snake`              | Complete Snakemake workflow                                   |
+| `differential_expression_analysis.Rmd`    | Differential gene expression (DESeq2                          |
+| `gene_set_enrichment_analysis.Rmd`        | GO/KEGG enrichment analysis (GSEA)                            |
+| `fastqc_plot.png`                         | Output from QC                                                |
+| `full_data_multiqc_report.html`           | QC summary (FastQC + MultiQC)                                 |
+| `gsea_plot.png`                           | GSEA visualization                                            |
+| `my_workflow_updated.PNG`                 | Updated diagram of full analysis pipeline                     |
+| `Rhistory.txt`                            | R console history & visuals used                              |
+| `discussion_questions.Rmd`                | Weekly conceptual responses                                   |
 
----
 
 ## Pipeline Overview
 
@@ -63,7 +62,7 @@ The pipeline follows best practices for RNA-seq and includes the following major
 This section walks through each `.Rmd` file from the perspective of an analyst performing the work.
 
 ### `RNAseq-analysis-file.snake`  
-This file is the engine of the analysis — a streamlined and modular Snakemake pipeline that merges the logic and steps from Weeks 1 to 3. It handles quality trimming, alignment to the reference genome, generation of BAM files, and read quantification. It was designed for flexibility and reproducibility, with wildcard rules and proper input/output handling.
+This file is the engine of the analysis — a streamlined and modular Snakemake pipeline that merges the logic and steps. It handles quality trimming, alignment to the reference genome, generation of BAM files, and read quantification. It was designed for flexibility and reproducibility, with wildcard rules and proper input/output handling.
 
 ---
 
@@ -184,8 +183,7 @@ We intentionally diverge from their original methods in favor of updated tools a
 ---
 
 ## Contact
-
-If you're looking to reproduce this project, extend the workflow, or collaborate on a similar analysis — feel free to connect or open an issue. I'm happy to discuss improvements, additions, or adaptations of this pipeline for other datasets.
+saxena.arshiya@gmail.com
 ```
 
 
