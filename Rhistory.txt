@@ -1,0 +1,9 @@
+knitr::include_graphics("")
+```
+knitr::include_graphics("")
+knitr::include_graphics("fastqc_plot.png")
+knitr::include_graphics("gsea_plot.png")
+knitr::include_graphics("")
+knitr::include_graphics("my_gen_file.png")
+knitr::include_graphics("my_workflow.PNG")
+knitr::include_graphics("my_workflow_updated.PNG")
