@@ -1,0 +1,463 @@
+# Week 1: RNAseq {-}
+
+**Read the paper**
+
+This analysis is based on the data published in this study: *O’Meara et al.
+Transcriptional Reversion of Cardiac Myocyte Fate During Mammalian Cardiac
+Regeneration. Circ Res. Feb 2015. PMID: 25477501*
+
+Please read the paper to get a sense for the overall hypotheses, goals, and
+conclusions presented. Keep in mind we are only analyzing the data from the
+first figure, and only the dataset involving the samples from p0, p4, p7 and
+adult mouse heart ventricle cells. 
+
+We will also be deviating from the published methods in favor of using more
+up-to-date strategies and tools. However, the workflow you will develop should
+still capture and recreate the same core biological signals observed in the
+original work.
+
+**Create a working directory for project 1**
+
+Please sign on to the SCC and navigate to our class project directory located
+at: /projectnb/bf528/students/*your_username*/
+
+Accept the github classroom link and clone the assignment to your working
+directory. 
+
+**The structure and setup of the project**
+
+After you have accepted the github classroom link, clone the repo into
+your student directory (/projectnb/bf528/students/your_name/).
+
+Within /projectnb/bf528/students/your_name/project_1/, you should see the
+following structure (directories are indicated by names ending with "/"):
+
+    |-- results/
+        |-- Any processed data output, downloaded file, etc. should go in here, 
+            remember to provide this path as an output for any tasks
+        
+    |-- samples/
+        |-- Copy the provided fastq files here, remember to provide this path 
+            when referring to your input files
+        
+    |-- docs/
+        |-- This will contain a copy of each week's instructions and any
+           other documents necessary for the required tasks
+           
+    |-- week1.snake
+        |-- We have provided you a template for the first week's snakefile
+        
+    |-- week2.snake
+        |-- A template for the week 2 snakefile
+        
+    |-- week3.snake
+        |-- A template for the week 3 snakefile
+    
+    |-- week(1, 2, 3).Rmd
+        |-- We have provided you with a Rmd notebook for you to quickly
+            write your preliminary methods and results for each week
+            
+    |-- differential_expression.Rmd
+        |-- For the end of week 3 and the tasks for week 4, you will need
+            to perform a series of operations in R. Please use this provided 
+            notebook to do these. 
+
+**Create a conda environment for this project**
+
+One of the core advantages of conda is that it allows you to create multiple,
+independent computing environments with different sets of packages installed
+with conda handling dependencies. It is generally a good practice to create a
+distinct, self-contained conda environment for each individual dataset /
+experiment. If you did not go through assignment 0, then please follow the
+instructions here to setup conda:  https://www.bu.edu/tech/support/research/software-and-programming/common-languages/python/python-software/miniconda-modules/
+
+    1. Please create a conda environment for this project, you may name it
+    whatever is easiest for you to remember
+    
+Take care to activate your conda environment prior to working on any aspect of
+the project. The tools installed in these environments are only accessible when
+you have activated the environment prior. 
+
+    2. Using the conda install command, please install
+    the following packages: snakemake, pandas, fastqc, star, samtools, multiqc,
+    verse, bioconductor-deseq2, bioconductor-fgsea, jupyter-lab
+
+**Locating the data**
+
+For this first project, we have provided you with small subsets of the original
+data files. You should copy these files to the `samples/` folder in your working
+directory that you cloned. For your convenience, we have renamed the files to be
+descriptive of the samples they represent following the pattern:
+{timepoint}{rep}subsample_{readpair}.fastq.gz (i.e. ADrep1subsample_R1.fastq.gz)
+
+The files are located here: /projectnb/bf528/project_1_rnaseq/ and there are 16
+total files (8 samples, paired end reads).
+
+    1. Using `cp`, make all of these files available in your samples/ directory       
+
+**Performing Quality Control**
+
+At this point, you should have: 
+
+- Setup a directory for this project by accepting the github classroom link
+- Copied the files to your working directory
+- Created a new conda environment containing the requested packages 
+- Activate your environment before doing any work
+
+We will begin by performing quality control on the FASTQ files generated from
+the experiment. fastQC is a bioinformatics software tool that calculates and
+generates descriptive graphics of the various quality metrics encoded in a FASTQ
+file. We will use this tool to quickly check the basic quality of the sequencing
+in this experiment.
+
+Your first task is to develop the provided snakemake workflow (week1.snake) that
+will run fastQC on each of the 16 project files. You will have to make
+appropriate use of the expand() function to construct a working snakefile to
+perform these steps.
+
+You may find it helpful to utilize the following command:
+`snakemake -s {insert_your_snakefile_name} --dryrun -p`
+
+This command will instruct snakemake to print out a summary of what it plans to
+do based on how your snakefile is written. This command is useful for quickly
+troubleshooting if you have any simple errors in syntax, wildcard matching, etc.
+Please note that it will not actually run any of the code in your rule
+directives and thus will not allow you to determine if there are any issues or
+errors in your actual shell or python arguments / commands.
+
+    1. Set up your snakemake workflow to run FastQC on each of the 16 FASTQ
+    files (8 samples)
+      - Remember all produced files / data should be output to your results/
+        directory
+
+By default, FastQC will create a .html and a .zip file for each FASTQ file. It
+will create these files with the following pattern:
+{original_filename}_fastqc.html and {original_filename}_fastqc.zip
+        
+You may have noticed that FastQC produces separate outputs for each sample. Many
+other QC programs also operate on a file level and analyze single files at a
+time. This dataset is on the smaller side but larger experiments can encompass
+hundreds of samples. Individually inspecting outputs from all of these utilities
+would quickly become cumbersome in such situations. 
+
+We are going to utilize the MultiQC utility, which recognizes the outputs from
+many standard bioinformatics tools, and concatenates their outputs into a
+single, well-formatted and visually attractive report.
+
+    1. Read the multiQC manual to learn more about its operation and create a
+    snakemake rule that runs MultiQC.
+      - Remember to have MultiQC use your samples/ directory as an input and
+        output its results to the results/ directory
+
+You should have three rules: your rule all, the rule that runs fastQC on each of
+the files, and the rule that runs multiqc.
+
+
+At the end of the first week, you should make sure to have done the following:
+
+- Read the paper and understand the goals and hypotheses of the original study.
+Focus in particular on the analyses pertaining to the dataset we are examining
+and make note of the interpretations and conclusions drawn by the authors.
+- Accept the github classroom link to setup the project in your working directory
+- Make a new conda environment with the specified packages for this experiment
+- Copy the subset files to your results/ directory
+- Complete the provided snakemake workflow (week1.snake) that runs fastQC on all
+16 samples
+- Generate a snakemake rule that runs multiqc after all fastQC reports have been
+completed
+- Write a brief methods and results section for this week's tasks in the provided
+markdown file (week1.Rmd)
+- Answer any conceptual questions (also contained in the Rmd) - many of these 
+questions do not have a single right answer and are designed to allow you to make
+hypotheses and think creatively about research questions.
+
+
+**CHALLENGE**
+
+If you are already familiar with high performance computing environments, you no
+doubt understand that you should not run any intensive computational tasks on
+the head node.
+
+Please only attempt this section if you are proficient and knowledgeable in the
+use of qsub to properly submit batch jobs with appropriate resources requested.
+
+The original data files are located in our single project directory,
+/projectnb/bf528/materials/project_1_rnaseq/full_files/
+
+Reformat your snakefile to operate on the full data files; their name will not
+include “subsample” but otherwise follow the same exact naming conventions
+mentioned previously.
+
+  1. Using your snakemake workflow, run FastQC on all 16 original data files 
+  2. Add a rule that also runs MultiQC after completion of all FastQC analyses
+
+Your snakemake command used to run must include the --cluster option and
+appropriate qsub arguments to avoid running these jobs on the head node. We will
+be discussing the appropriate usage of qsub and --cluster in the upcoming weeks.
+
+
+# Week 2: RNAseq {-}
+
+Now that we have performed basic quality control on the FASTQ files, we are
+going to align them to the mouse reference genome to generate alignments for
+each of our sequencing reads. We will then “count” the alignments falling into
+regions of interest in the mouse genome (exonic regions) and sum the alignments
+falling into all exons of a given gene to obtain a “gene-level” count of mRNA
+abundance for all genes in each sample.
+
+**Downloading files from public repositories**
+
+As we have discussed in lecture, there are many major scientific organizations
+that create, maintain and/or host innumerable bioinformatics resources. GENCODE,
+is one such organization, whose primary mission is to provide up-to-date and
+curated reference genomes and annotations for humans and mice. In the course of
+your work as a bioinformatician, you should and will have to make good use of
+the plethora of public resources available to you.
+
+Navigate to the GENCODE website and select the page for Mouse. Look underneath
+the section entitled “Fasta files” and locate the file with content “Genome
+sequence, primary assembly (GRCm39)”. This is the most up to date human
+reference genome available.
+
+Look under the section entitled “GTF / GFF3 files” and locate the file with the
+description, “It contains the comprehensive gene annotation on the primary
+assembly (chromosomes and scaffolds) sequence regions”. This file is the
+matching annotation file for the available human reference genome.
+
+  1. Please generate a snakemake rule that will download two files from the
+  GENCODE service. You may need to make two separate snakemake rules or figure
+  out a way to do it in one. Consider looking into the wget and curl commands,
+  which in tandem with snakemake, will enable you to incorporate downloading
+  these files as part of your workflow.
+
+  2. Now that you have located both of these files, generate a snakemake rule
+    (or two) that downloads these files - Remember that snakemake rules do not
+    always need an input
+
+Some bioinformatics utilities can handle gzipped files, others cannot. For our
+workflow, we will need the GTF file to be uncompressed. You may generate a
+snakemake rule to do this or simply uncompress the file on the command line.
+
+**Aligning reads to the genome**
+
+Before aligning reads to a reference genome, most tools will need to generate a
+genome index, a set of files which enable fast and efficient searching through a
+large sequence. This step is computationally intensive and cannot be run on the
+head node of the SCC. For this first project, we have pre-built an appropriate
+STAR index for a portion of the m39 reference.
+
+  1. Copy the entire directory located at: 
+  /projectnb/bf528/materials/project_1_rnaseq/m39_subset_star/ to your samples/
+  directory
+  
+  2. Create a snakemake rule that aligns each of your 8 samples (16 files) 
+  against the provided m39 reference genome with the following requirements in 
+  mind:
+    - Look through the most current manual and documentation for STAR and set the 
+    option to output a BAM Unsorted file
+    - Leave every other argument as default
+    - Hint: Make sure to carefully read the section on naming output files in STAR.
+
+**Performing post-alignment QC**
+
+Typically after performing alignment, it is good to perform post-alignment
+quality control to quickly check if there appear to be any major problems with
+the data. We are going to primarily focus on the overall mapping rate statistic,
+which is simply the percentage of reads that properly map to our genome. For a
+well-annotated and studied organism like mouse, we typically expect very high
+mapping rates (>80%) for standard RNAseq experiments in the absence of any
+errors in sample processing, library preparation or alignment issues. 
+
+The samtools suite contains a set of highly important and incredibly useful
+utilities for parsing and manipulating SAM/BAM files. Take a look at the
+samtools manual to get a sense for its capabilities.
+
+  1. Create a snakemake rule that runs the samtools flagstat utility on each of 
+  your BAM files. By default, this utility prints results to stdout. Redirect and
+  save the output to a .txt file instead.
+
+Since you are working with files that have been intentionally filtered to make
+them smaller, the actual outputs from fastQC, flagstats, and STAR will be
+misleading. Do not draw any conclusions from these reports generated on the
+subsetted data.
+
+At the end of week 2, you should make sure to have accomplished the following 
+items:
+
+- Generated a snakemake rule (or two) that download the primary assembly genome
+FASTA for m33 and its matching GTF file 
+- Make sure to uncompress the GTF file, you may do this in snakemake or on the 
+command line 
+- Generated a snakemake rule that runs STAR to generate 8 Unsorted BAM files for
+each of the samples in our dataset
+- Generated a snakemake rule that runs samtools flagstat on each of the
+BAM files and creates a .txt file for each output 
+- Generated a snakemake rule that runs MultiQC on your project directory
+- Write the methods and results section for this week's tasks in the provided
+week2.Rmd
+- Answer any conceptual questions also found in the week2.Rmd
+
+**CHALLENGE** (only do this if you did last weeks challenge)
+
+As with last week’s challenge, please do not attempt this unless you are already
+familiar with qsub, and how to request appropriate computational resources on
+the SCC. Generating a genome index requires both a large amount of time and RAM
+and should not be done on the head node under any circumstances.
+
+  1. Using the primary assembly FASTA of the m39 genome and its matching GTF file
+  that you downloaded,generate your own STAR index using snakemake using default
+  parameters.
+  
+  2. Use your generated STAR index to align your samples to the full m39 genome.
+  You will have to use qsub for this.
+
+# Week 3: RNAseq {-}
+
+**Mapping gene IDs to gene symbols**
+
+There are several ways to map gene IDs to gene symbols (ENSMUSGXXXXX to Actb),
+including BiomaRt, which you have previously used in BF591. For this project, we
+will be extracting the mapping of gene IDs to gene symbols directly from the GTF
+used to build our genome index. Take a look at the first few lines of the GTF
+that you downloaded earlier or look up how information is stored and formatted
+in a GTF.
+
+Use `cat` or `head` to inspect the first several lines of the GTF annotation file
+
+  1. Generate a snakemake rule that parses this GTF and accomplishes the following:
+    - Includes the run directive to parse this file using python
+    - Parse each relevant line of the GTF and extract the ensembl gene ID and 
+      matching gene symbol
+    - Write out every pair of gene ID and gene symbol to a comma delimited text file     (ENSMUSG00000023170.14,Gps2\n - an example of a single line)
+    - You may want to consider ways to ensure only unique pairs of gene IDs and 
+    symbols are saved in your output
+
+We will use this mapping of IDs to symbols later on to replace the gene IDs with
+the more easily recognized and tractable gene symbols.
+
+**Quantifying the alignments**
+
+Now that we have aligned each of our samples to the reference genome, we need to
+quantify these alignments. This quantification is typically done by “counting”
+the alignments falling into regions of interest. These regions of interest can
+vary depending on your goal, but most commonly for RNAseq, we are interested in
+quantifying the counts of alignments mapping in exonic regions. To obtain gene
+level counts, the counts from all of its exonic regions are summed. This will
+end up generating a single file with the rows representing all of the genes in
+the m33 reference and the corresponding counts of how many alignments from a
+sample fall into the regions annotated for each gene.
+
+  1. Read the documentation for VERSE and create a snakemake rule that runs VERSE 
+  on each of your 8 bam files
+    - VERSE will require your BAM file and the GTF file that matches the 
+      reference used to build the index
+
+VERSE will generate a counts file (*.exon.txt) for each of your 8 samples. For
+most downstream applications, we will want this data in the form of a counts
+matrix, a single file containing all of the counts from each sample.
+
+  1. Create another snakemake rule that uses pandas to concatenate the VERSE 
+  output files and accomplishes the following:
+    - Creates a single dataframe where each of the samples are a column, the 
+      rows represent the gene counts and the row names are the gene IDs.
+    - Writes this dataframe to a new file for use downstream
+
+
+**Visualizing count distributions and filtering**
+
+Now that we have a single matrix containing all of our counts, it is common to
+visualize the distribution of these counts as well as perform pre-filtering of
+the counts. Typically, this filtering is performed by setting a reasonable
+threshold to remove lowly expressed genes. The purpose of filtering is to reduce
+unnecessary computation as well as remove genes that may negatively impact
+downstream applications.
+
+You may have noticed that this dataset only has two replicates per timepoint. As
+we discussed in class, there are multiple potential meanings to a count of zero
+in the context of sequencing experiments. For example, it is possible we did not
+sequence “deep” enough to detect certain lowly expressed genes. However, it’s
+also possible that genes with zero counts are truly not expressed at all. In
+order to mitigate some of this uncertainty, we are going to apply a filter to
+our counts to simply remove any genes that are not expressed in all of our
+samples. **Please note** that this is a subjective choice and there is not a single
+correct way of filtering this data. This specific filter was chosen to avoid
+attempting to perform statistical tests between conditions where we only have
+one measurement (our filter will only retain genes that are expressed in every
+sample, ensuring that at worst, we are comparing 2 measurements against 2
+measurements).
+
+If you remember, we have been working with datafiles that were intentionally
+filtered to make them much smaller and able to be processed on the head node.
+For the following steps, please use the provided file,
+/projectnb/bf528/project_1_rnaseq/verse_filtered.tsv, in place of the one you
+created.
+
+If and only if you have successfully completed all of the CHALLENGE steps, you may 
+use your own filtered counts matrix instead.
+	
+  1. Please create a jupyter notebook in your project directory
+    - You should do this using the OnDemand graphical interface
+    - Generate a plot of the distribution of counts for each sample from the 
+      single count matrix you just created in the previous step
+
+Now that we have visualized the distribution of our unfiltered counts. We are
+going to apply the filter we outlined above:
+
+  1. Generate a new snakemake rule that takes the counts matrix as input, performs
+    the described filtering, and writes this filtered counts matrix to a new file.
+    You may do this however you like, but we recommend that you use the run 
+    directive in combination with pandas. 
+
+  2. Go back to your jupyter notebook, and create the same plot but with the 
+    filtered counts matrix. For our next steps, we will be using the filtered 
+    counts matrix.
+
+**Performing differential expression**
+
+Now that we have filtered our counts, we are going to perform differential
+expression with DESeq2. There are a few ways to do this, but we are going to
+perform this analysis in a Rmarkdown notebook in order to keep everything as
+organized as possible. Please create a Rmarkdown notebook in your project
+directory using SCC OnDemand and do all of the following work with DESeq2 in
+this notebook.
+
+  1. Please read the fantastically written DESeq2 vignette (https://bioconductor.org/packages/devel/bioc/vignettes/DESeq2/inst/doc/DESeq2.html)
+  and perform a basic differential expression analysis comparing just the p0 and 
+  AD timepoints.
+    - Run DESeq2 using default settings and comparing the p0 and AD samples
+    - Write out the full results from DESeq2 to a new file
+    - Report how many genes are significant at a FDR of < .001 in your notebook
+
+
+At the end of week 3, you should have accomplished the following:
+
+- Generated a snakemake rule that produces a delimited .txt file containing the 
+correct mapping of ensembl gene IDs to their corresponding gene symbol from the 
+GTF annotations
+- Generated a snakemake rule that runs VERSE on each of the BAM
+files
+- Generated a snakemake rule that concatenates the VERSE output files into
+a single dataframe
+- Generated two plots showing the distribution of counts in each sample before 
+and after filtering in a jupyter notebook
+- Performed a standard DESeq2 analysis on the filtered counts matrix, and 
+comparing only the p0 and AD timepoints in a Rmarkdown notebook 
+- In your notebook, filter the results to only contain significantly 
+differentially expressed genes with a FDR < .001 and report the number significant
+at this threshold
+- Write the results and methods sections for this week's tasks in the provided
+Rmarkdown (week3.Rmd)
+- Answer any conceptual questions contained in the week3.Rmd
+
+**CHALLENGE**
+
+The original instructions ask you to perform the DESeq2 analysis in a Rmarkdown
+notebook. Snakemake is capable of running external scripts. For the extra task,
+generate a snakemake rule that will run DESeq2 by calling a separate Rscript. To
+do this, you will need to:
+
+  1. Encapsulate the code that runs DESeq2 in a Rscript
+    - Utilize docopt or similar tools to allow your Rscript to recognize command 
+      line arguments
+    - Determine appropriate outputs and inputs for this rule
+
